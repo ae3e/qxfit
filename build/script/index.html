@@ -1,13 +1,114 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script type="text/javascript" src="qx-oo-5.0.1.min.js"></script>
-<script type="text/javascript" src="qxfit.js"></script>
-<script>
-	var session = new ae.fit.Session();
-	session.setName("MySession");
-	console.log(session.getName());
-</script>
+	<script type="text/javascript"
+		src="https://rawgit.com/mapbox/togeojson/master/togeojson.js"></script>
+	<script type="text/javascript"
+		src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+	
+	
+	<script type="text/javascript" src="qx-oo-5.0.1.min.js"></script>
+	<script type="text/javascript" src="qxfit.js"></script>
 </head>
-<body></body>
+<body>
+	<div id="chart" style="width: 1200px; height: 600px;"></div>
+	<div id="table" style="width: 1200px"></div>
+
+	<script>
+		Plotly.d3.xml("https://gist.githubusercontent.com/adeliz/3d4a389c4942fc1468e183dbb8a9396a/raw/Lemoncello.gpx", "application/xml", function(doc) {
+	    //Plotly.d3.xml("https://gist.githubusercontent.com/adeliz/3d4a389c4942fc1468e183dbb8a9396a/raw/Albon.gpx", "application/xml", function(doc) {
+	        
+	        var data = toGeoJSON.gpx(doc);
+	        data.features[0].properties.times = data.features[0].properties.coordTimes;
+	        data.features[0].properties.heartrates = data.features[0].properties.heartRates;
+	        
+	        var session = new ae.fit.Session();
+	        session.fromGeoJSON(data);
+	          
+	        session.calculateIntervals("10' - 4 x 200m/45\" - 10'");
+			
+	    	chart = document.getElementById('chart');
+			Plotly.plot( chart, [
+				{
+					x: session.getTimes().getData().map(function(elt,index,array){return new Date(elt);}),
+					y: session.getAltitudes().getData()
+				},
+				{
+					x: session.getTimes().getData().map(function(elt,index,array){return new Date(elt);}),
+					y: session.getHeartrates().getData(),
+					yaxis:"y2"
+				},
+				{
+					x: session.getTimes().getData().map(function(elt,index,array){return new Date(elt);}),
+					y: session.getSpeeds().getData(),
+					yaxis:"y3"
+				},
+				{
+					x: session.getTimes().getData().map(function(elt,index,array){return new Date(elt);}),
+					y: session.getCadences()?session.getCadences().getData():[],
+					yaxis:"y4"
+				}
+			], {
+				margin: { t: 0 },
+				showlegend: false,
+				yaxis: {
+					domain: [0, 0.2],
+					title : "Elevation"
+				},
+				yaxis2: {
+					domain: [0.25, 0.45],
+					title : "Heart rate"
+				},
+				yaxis3: {
+					domain: [0.55, 0.75],
+					title : "Speed"
+				},
+				yaxis4: {
+					domain: [0.8, 1],
+					title : "Cadence"
+				}
+			});
+			
+			var coordTimes = session.getTimes().getData();
+			var intervals = session.getIntervals();
+			var shapes=[];
+			for(var i=0;i<intervals.length;i++){
+				shapes.push({
+					type: 'rect',
+		            // x-reference is assigned to the x-values
+		            xref: 'x',
+		            // y-reference is assigned to the plot paper [0,1]
+		            yref: 'paper',
+		            x0: new Date(coordTimes[intervals.getItem(i).getStart()]).getTime(),
+		            y0: 0,
+		            x1: new Date(coordTimes[intervals.getItem(i).getEnd()]).getTime(),
+		            y1: 1,
+		            fillcolor: (i & 1)?"#AAA":"#FFF",
+		            opacity: 0.3,
+		            line: {
+		                width: 0
+		            }
+				});
+			}
+			var update = {
+					shapes : shapes
+			}
+			Plotly.relayout(chart, update);
+			
+			t = document.getElementById('table');
+		    var table = "<table style='width:100%'><tr><td>Interval</td><td>Speed</td><td>Heart rate</td><td>Cadence</td><td>Duration</td><td>Distance</td></tr>";
+		    for(var i=0;i<intervals.length;i++){
+		    	table += "<tr "+((i & 1)?"style='background-color:#EEE'":"style='background-color:#FFF'")+"><td>"+i+"</td><td>"
+		    	+Math.round(intervals.getItem(i).getStatistics().speeds.mean*100)/100+" km/h</td><td>"
+		    	+Math.round(intervals.getItem(i).getStatistics().heartrates.mean)+" bpm</td><td>"
+		    	+i+" rpm</td><td>"
+		    	+(session.getDurations().getData()[intervals.getItem(i).getEnd()]-session.getDurations().getData()[intervals.getItem(i).getStart()])/1000+" s</td><td>"
+		    	+Math.round((session.getDistances().getData()[intervals.getItem(i).getEnd()]-session.getDistances().getData()[intervals.getItem(i).getStart()])*1000)+" m</td></tr>";
+		    }
+		    table += "</table>";
+		    t.innerHTML=table;
+	    });
+		
+	</script>
+</body>
 </html>
