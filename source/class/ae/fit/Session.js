@@ -94,7 +94,7 @@ qx.Class.define("ae.fit.Session", {
 	        var data = [];
 	        this.getCoordinates().forEach(function(elt,index,array){
 	        	if(index>0){
-	        		data.push(data[index-1]+haversine(array[index-1][1],array[index-1][0],array[index][1],array[index][0]));
+	        		data.push(data[index-1]+haversine(array[index-1][0],array[index-1][1],array[index][0],array[index][1]));
 	        	}else{
 	        		data.push(0);
 	        	}
