@@ -91,7 +91,9 @@ qx.Class.define("ae.fit.Application",
         console.log(session.getHeartrates().getStatistics().min+" "+session.getHeartrates().getStatistics().max);
         console.log(session.getSpeeds().getStatistics().min+" "+session.getSpeeds().getStatistics().max);
         //console.log(session.getCadences().getStatistics().min+" "+session.getCadences().getStatistics().max);
-          
+        
+        console.log(ae.fit.Util.getSMA(session.getDistances().getData(),10));
+        
         session.calculateIntervals("15'- 600m - 10'");
         console.log(session.getIntervals());
       },this);

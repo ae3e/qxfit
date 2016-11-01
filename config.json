@@ -42,7 +42,7 @@
   "let" :
   {
     "APPLICATION"  : "ae.fit",
-    "QOOXDOO_PATH" : "../../../qooxdoo",
+    "QOOXDOO_PATH" : "D:/qooxdoo",
     "QXTHEME"      : "ae.fit.theme.Theme",
     "API_EXCLUDE"  : ["qx.test.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*"],
     "LOCALES"      : [ "en" ],
